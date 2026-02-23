@@ -1,38 +1,47 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { GuessingGame } from './GuessingGame';
 import './App.css'
 
-async function getPokemon() {
-  const url = 'https://pokeapi.co/api/v2/pokemon?limit=2000'
-  try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Response status: ${res.status}`);
-    }
-    const data = await res.json();
-    console.log(data);
-    // const imageUrl = data.sprites.other["official-artwork"].front_default;
-    // const pokeName= data.forms[0].name
-    // console.log(imageUrl);
-    // console.log(pokeName);
-  } catch (error) {
-    console.error(error.message);
-  }
-}
-
 function App() {
-  // const {imageUrl, setImageUrl} = useState(getPokemon());
+  const [isLoading, setIsLoading] = useState(true);
+  const [pokemonData, setPokemonData] = useState(null);
+  const [pokemonImageUrl, setPokemonImageUrl] = useState(null);
+
+  const fetchPokemonData = async () => {
+    const url = 'https://pokeapi.co/api/v2/pokemon?limit=2000';
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Response status: ${res.status}`);
+      }
+      const data = await res.json();
+      setIsLoading(false);
+      return data.results;
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
 
   useEffect(() => {
-    getPokemon();
-  },[])
+    async function startFetching() {
+      setPokemonData(null);
+      const result = await fetchPokemonData();
+      if (!ignore) {
+        setPokemonData(result);
+      }
+    }
+    let ignore = false;
+    startFetching();
+    return () => {
+      ignore = true;
+    }
+  },[]);
 
-  return (
-    <>
-
-    </>
-  )
+  if (isLoading) {
+    return <p>Loading...</p>
+  } else {
+    return <GuessingGame pokemonData={pokemonData}/>
+  }
 }
 
 export default App
